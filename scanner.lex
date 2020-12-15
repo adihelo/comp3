@@ -1,8 +1,8 @@
 %{
 
 /* Declarations section */
-#include "tokens.hpp"
-#include "output.hpp"
+#include "types.hpp"
+#include "hw3_output.hpp"
 #include "parser.tab.hpp"
 
 
@@ -18,10 +18,19 @@ whitespace		([\r\t\n ])
 %%
 
 "void"                                      return VOID;
-"int"                                       return INT;
-"byte"                                      return BYTE;
+"int"                                       {
+                                               yylval = Integer("INT");	
+	                                           return INT;
+											}
+"byte"                                      {
+	                                           yylval = Byte("BYTE");
+	                                           return BYTE;
+                                            }
 "b"                                         return B;
-"bool"                                      return BOOL;
+"bool"                                      {
+	                                           yylval = Bool("BOOL");
+                                               return BOOL;
+											}
 "and"                                       return AND;
 "or"                                        return OR;
 "not"                                       return NOT;
@@ -49,7 +58,10 @@ whitespace		([\r\t\n ])
 \+|\-                                       return ADDSUB;
 \*|\/							            return MULDIV;
 \.\.                                        return DOTS;
-{letter}({letter}|{digit})*                 return ID;
+{letter}({letter}|{digit})*                 {
+	                                           yylval =  Identifier(yytext);
+	                                           return ID;
+                                            }
 0|[1-9]{digit}*                             return NUM;
 \"([^\n\r\"\\]|\\[rnt"\\])+\"               return STRING;
 {whitespace}                                /* ignore */;
