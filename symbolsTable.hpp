@@ -42,15 +42,32 @@ class Decleration{
 class symbolsTable{
 	vector<int>* offsets;
 	vector<vector<Decleration>>* names;
-	int curr_offset;
+	int curr_offset;            // offset for new IDs decleration
+	int func_arg_offset;        // offset for function decleration arguments   
 	
 	public:
-	symbolsTable() : offsets(new vector<int>), names(new vector<vector<Decleration>>), curr_offset(0){}
-	void Insert(string name, string type, bool newScope){
-		Decleration dec = Decleration(name, type, offset);
-		curr_offset += 1;
+	symbolsTable() : offsets(new vector<int>), names(new vector<vector<Decleration>>), curr_offset(0)
+	                 ,func_arg_offset(-1){}
+	
+	/*
+	  This function inserts a new variable to the symbols table, it could be
+	  a new variable declared in the scope or a function argument.
+	*/
+	void Insert(string name, string type, bool newScope, bool funcArg){
+		int offset = 0;
+		if (funcArg){
+			Decleration dec = Decleration(name, type, func_arg_offset);
+			func_arg_offset -= 1;
+			offset = func_arg_offset;
+		}
+		else{
+			Decleration dec = Decleration(name, type, offset);
+			curr_offset += 1;
+			offset = curr_offset;
+		}
+		
 		if(newScope){
-			offsets->push_back(curr_offset);
+			offsets->push_back(offset);
 			vector<Decleration> new_vec;
 			new_vec.push_back(dec);
 			names->push_back(new_vec);
@@ -58,12 +75,28 @@ class symbolsTable{
 		}
 		
 		names->back().push_back(dec);
-		offsets->back() = curr_offset;
+		offsets->back() = offset;
 	}
 	
 	void pop(){
 		offsets->pop_back();
 		names->pop_back();
+	}
+	
+	/*
+	   This function checks if a variable with var_name was declared in outer scopes and returns its type.
+	   Returns an empty string if wasn't found.
+	*/
+	string checkVariableDeclared(string var_name){
+		string var_type = "";
+		for(int i= names->size()-1 ; i>=0 ; i--){
+			for(int j=0; j<= *names[i].size() ; j++){
+				if(*names[i][j].getName() == var_name){
+					var_type = *names[i][j].getType();
+				}
+			}
+		}
+		return var_type;
 	}
     
     
