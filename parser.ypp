@@ -9,6 +9,7 @@
 	extern int yylex();
 	extern int yylineno;
 	int yyerror(const char * message);
+    symbolsTable table;
 	
 %}
 
@@ -165,20 +166,20 @@ Statement: LBRACE Statements RBRACE
 		  
 Call:      ID LPAREN Explist RPAREN 
           {
-			  
+			  $$=new Call(table.checkFuncExists(($1->name,dynamic_cast<ExpList*>$3->types)); //not sure about the $1->name
 		  }
           | ID LPAREN RPAREN 
 		  {
-			  
+			 $$=new Call(table.checkFuncExists(($1->name,{}));  
 		  }
 
 Explist:    Exp 
           {
-	         
+	         $$= new ExpList (dynamic_cast<Exp*> ($1));
 		  }
           | Exp COMMA Explist 
 		  {
-			  
+			$$= new ExpList (dynamic_cast<Exp*>($1),dynamic_cast<ExpList*>($3));  
 		  }
 
 Type :      INT 
@@ -195,74 +196,131 @@ Type :      INT
 		  }
           | SET LBRACKET NUM DOTS NUM RBRACKET 
 		  {
-			 
+			 //todo
 		  }
 
 Exp:        LPAREN Exp RPAREN 
           {
-			 
+			 $$=$1;
 		  }
-          | ID 
+          | ID //todo // I think this needs the function that looks up a variable
 		  {
 			 
 		  }
           | Call 
 		  {
-			  
+			  $$=$1; 
 		  }
           | NUM 
 		  {
-			  
+			  $$->type = "INT";
+              
 		  }
           | NUM B 
 		  {
-			 
+			 $$->type = "BYTE";
+             if($1->name > 255 ){  //the stored value is name right?   //byte can't be above 255
+                errorByteTooLarge(yylineno, $1->name);
+                exit(0);
+             }
 		  }
           | STRING 
 		  {
-			  
+			  $$->type = "STRING";
 		  }
           | TRUE 
 		  {
-			  
+			  $$->type = "BOOL";
 		  }
           | FALSE 
 		  {
-			  
+			  $$->type = "BOOL";
 		  }
           | NOT Exp 
 		  {
+            if($1->type != "BOOL"){
+                errorMismatch(yylineno);
+                exit(0);
+            }else{
+                $$->type = "BOOL";
+            
+            }
 			  
 		  }
           | Exp AND Exp 
 		  {
-			  
+			if(($1->type != "BOOL") || ($3->type != "BOOL")){
+                errorMismatch(yylineno);
+                exit(0);
+            }
+            $$->type = "BOOL";
 		  }
           | Exp OR Exp 
 		  {
-			 
+			 if(($1->type != "BOOL") || ($3->type != "BOOL")){
+                errorMismatch(yylineno);
+                exit(0);
+            }
+            $$->type ="BOOL";
 		  }
           | Exp ADDSUB Exp 
 		  {
-			 
+			 if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
+                errorMismatch(yylineno);
+                exit(0);
+            }
+            if((($1->type == "INT") ||($2->type == "INT")){
+                
+                $$->type = "INT";
+            }else{
+                $$->type = "BYTE";
+            
+            }
 		  }
           | Exp MULDIV Exp 
 		  {
-			  
-		  }| Exp RELOPN Exp 
+			  if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
+                errorMismatch(yylineno);
+                exit(0);
+            }
+            if((($1->type == "INT") ||($2->type == "INT")){
+                
+                $$->type ="INT";
+            }else{
+                $$->type ="BYTE";
+            
+            }
+		  }| Exp RELOPN Exp  //todo
 		  {
 			  
 		  }
           | LPAREN Type RPAREN Exp 
 		  {
+            if((dynamic_cast<Type*>($2)->type!="INT") || $3->type !="SET"){
+                errorMismatch(yylineno);
+                exit(0);
+            }
+            $$->type = "INT";
 			 
 		  }
 		  | Exp RELOPL Exp
 		  {
-			
+			if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
+                errorMismatch(yylineno);
+                exit(0);
+            }
+            
+                $$->type ="BOOL";
+            
+            }
 		  }| Exp RELOPR Exp
 		  {
-			  
+			  if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
+                errorMismatch(yylineno);
+                exit(0);
+            }
+            
+                $$->type ="BOOL";
 		  }
 		  
 %%

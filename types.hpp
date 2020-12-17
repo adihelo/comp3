@@ -14,39 +14,28 @@ using namespace std;
 		}
 	};
     
-	class Integer: public Node{
-		public:
-		Integer(string new_type){
+	class Type: public Node{
+        public:
+		Type(string new_type){
 			type = new_type;
 		}
-	};
-	
-	class Byte: public Node{
-		public:
-		Byte(string new_type){
-			type = new_type;
-		}
-	};
-	
-	class Bool: public Node{
-		public:
-		Bool(string new_type){
-			type = new_type;
-		}
-	};	
-    class Exp: public Node{  //to do 
-        
-    }
+    
+    };
+    class Exp: public Node{  //to do //till now I did not need this everything is handled in parser
+                                 //should this raise a red flag? am I doing something worng?
+       public:
+            
+    };
     
     class ExpList: public Node{
         //vector for the explist, each element is of type exp
         vector<Exp> expList;
         
 		public:
-		Call(Exp* exp){
+		ExpList(Exp* exp){
 			explist.push_back(exp);
 		}
-        Call(Exp* exp, ExpList* list){
+        ExpList(Exp* exp, ExpList* list){
             expList = vector<Exp>(list);
             expList.emplace(expList.begin(),Exp); // at the begging of the vector
 		}
