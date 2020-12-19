@@ -1,15 +1,19 @@
-%{
+ %{
 //	#define YYERROR_VERBOSE 1 
 	#include <iostream>
 	#include <stdlib.h>
 	#include "hw3_output.hpp"
 	#include "types.hpp"
+	#include "symbolsTable.hpp"
 	using namespace std;
 	
 	extern int yylex();
 	extern int yylineno;
 	int yyerror(const char * message);
-    symbolsTable table;
+
+    symbolsTable vars_table;         // The symbols table for variables.
+    FuncsTable funcs_table;          // The table for all functions declared.
+
 	
 %}
 
@@ -121,7 +125,7 @@ Statement: LBRACE Statements RBRACE
 		  }
 		  | Type ID SC	
 		  {
-		    cout << $1.type << " " << $2.name << endl;
+		    
 		  }
 		  | Type ID ASSIGN Exp SC	
 		  {
@@ -166,11 +170,11 @@ Statement: LBRACE Statements RBRACE
 		  
 Call:      ID LPAREN Explist RPAREN 
           {
-			  $$=new Call(table.checkFuncExists(($1->name,dynamic_cast<ExpList*>$3->types)); //not sure about the $1->name
+			  $$=new Call(funcs_table.checkArgsValid(($1->name,dynamic_cast<ExpList*>$3->types)); //not sure about the $1->name
 		  }
           | ID LPAREN RPAREN 
 		  {
-			 $$=new Call(table.checkFuncExists(($1->name,{}));  
+			 $$=new Call(funcs_table.checkArgsValid(($1->name,{}));
 		  }
 
 Explist:    Exp 
