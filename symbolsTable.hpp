@@ -38,6 +38,9 @@ class VarDecleration{
         }
         return true;
     }
+    void setOffset(int new_offset){
+        offset = new_offset;
+    }
 };
 
 class FuncDecleration{
@@ -78,25 +81,24 @@ class symbolsTable{
 	*/
 	void Insert(string name, string type, bool newScope, bool funcArg){
 		int offset = 0;
+		VarDecleration dec = VarDecleration(name,type,offset);
 		if (funcArg){
-			VarDecleration dec = VarDecleration(name, type, func_arg_offset);
+		    dec.setOffset(func_arg_offset);
 			func_arg_offset -= 1;
 			offset = func_arg_offset;
 		}
 		else{
-			VarDecleration dec = VarDecleration(name, type, offset);
 			curr_offset += 1;
 			offset = curr_offset;
 		}
 		
-		if(newScope){
+		if(newScope || names->size() == 0){
 			offsets->push_back(offset);
 			vector<VarDecleration> new_vec;
 			new_vec.push_back(dec);
 			names->push_back(new_vec);
 			return;
 		}
-		
 		names->back().push_back(dec);
 		offsets->back() = offset;
 	}
@@ -127,7 +129,12 @@ class symbolsTable{
 class FuncsTable{
     vector<FuncDecleration>* functions;
 public:
-    FuncsTable(): functions(new vector<FuncDecleration>()){}
+    FuncsTable(): functions(new vector<FuncDecleration>()){
+        vector<string> print_vec{"STRING"};
+        vector<string> printi_vec{"INT"};
+        Insert("print", "VOID", print_vec);
+        Insert("printi", "VOID", printi_vec);
+    }
     Insert(string name, string ret_type, vector<string> args_type){
         FuncDecleration function = FuncDecleration(name, ret_type, args_type);
         functions->push_back(function);

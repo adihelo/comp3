@@ -13,6 +13,7 @@
 
     symbolsTable vars_table;         // The symbols table for variables.
     FuncsTable funcs_table;          // The table for all functions declared.
+    bool new_scope = false;
 
 	
 %}
@@ -61,7 +62,7 @@
 
 Program:  Funcs
           {
-			  
+			  funcs_table.printTable();
 		  }
 		  
 Funcs :  
@@ -81,11 +82,11 @@ FuncDecl: RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE
 
 RetType:  Type
           {
-			  
+			  $$.type = $1.type;
 		  }
 		  | VOID
 		  {
-			  
+			  $$.type = "VOID";
 		  }
 
 Formals: 
@@ -108,7 +109,7 @@ FormalsList:FormalDecl
 
 FormalDecl: Type ID
 		  {
-		      
+		      vars_table.Insert($2.name, $1.type,false,true);
 		  }
 		  
 Statements: Statement
