@@ -9,7 +9,7 @@
 	
 	extern int yylex();
 	extern int yylineno;
-	int yyerror(const char * message);
+	//int yyerror(const char * message);
 
     symbolsTable vars_table;         // The symbols table for variables.
     FuncsTable funcs_table;          // The table for all functions declared.
@@ -218,114 +218,115 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | NUM 
 		  {
-			  $$->type = "INT";
+			  $$.type = "INT";
               
 		  }
           | NUM B 
 		  {
-			 $$->type = "BYTE";
-             if($1->name > 255 ){  //the stored value is name right?   //byte can't be above 255
-                errorByteTooLarge(yylineno, $1->name);
+			 $$.type = "BYTE";
+             if($1.name > 255 ){  //the stored value is name right?   //byte can't be above 255
+                output::errorByteTooLarge(yylineno, $1.name);
                 exit(0);
              }
 		  }
           | STRING 
 		  {
-			  $$->type = "STRING";
+			  $$.type = "STRING";
 		  }
           | TRUE 
 		  {
-			  $$->type = "BOOL";
+			  $$.type = "BOOL";
 		  }
           | FALSE 
 		  {
-			  $$->type = "BOOL";
+			  $$.type = "BOOL";
 		  }
           | NOT Exp 
 		  {
-            if($1->type != "BOOL"){
-                errorMismatch(yylineno);
+            if($1.type != "BOOL"){
+                output::errorMismatch(yylineno);
                 exit(0);
             }else{
-                $$->type = "BOOL";
+                $$.type = "BOOL";
             
             }
 			  
 		  }
           | Exp AND Exp 
 		  {
-			if(($1->type != "BOOL") || ($3->type != "BOOL")){
-                errorMismatch(yylineno);
+			if(($1.type != "BOOL") || ($3.type != "BOOL")){
+                output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$->type = "BOOL";
+            $$.type = "BOOL";
 		  }
           | Exp OR Exp 
 		  {
-			 if(($1->type != "BOOL") || ($3->type != "BOOL")){
-                errorMismatch(yylineno);
+			 if(($1.type != "BOOL") || ($3.type != "BOOL")){
+                output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$->type ="BOOL";
+            $$.type ="BOOL";
 		  }
           | Exp ADDSUB Exp 
 		  {
-			 if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
-                errorMismatch(yylineno);
+			 if((($1.type != "INT") &&($1.type != "BYTE"))  || (($3.type != "INT") &&($3.type != "BYTE")) ){
+                output::errorMismatch(yylineno);
                 exit(0);
             }
-            if((($1->type == "INT") ||($2->type == "INT")){
+            if(($1.type == "INT") ||($2.type == "INT")){
                 
-                $$->type = "INT";
+                $$.type = "INT";
             }else{
-                $$->type = "BYTE";
+                $$.type = "BYTE";
             
             }
 		  }
           | Exp MULDIV Exp 
 		  {
-			  if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
-                errorMismatch(yylineno);
+			  if((($1.type != "INT") &&($1.type != "BYTE"))  || (($3.type != "INT") &&($3.type != "BYTE"))){
+                output::errorMismatch(yylineno);
                 exit(0);
             }
-            if((($1->type == "INT") ||($2->type == "INT")){
+            if(($1.type == "INT") ||($2.type == "INT")){
                 
-                $$->type ="INT";
+                $$.type ="INT";
             }else{
-                $$->type ="BYTE";
+                $$.type ="BYTE";
             
             }
-		  }| Exp RELOPN Exp  //todo
+		  }
+		  | Exp RELOPN Exp  //todo
 		  {
 			  
 		  }
           | LPAREN Type RPAREN Exp 
 		  {
-            if((dynamic_cast<Type*>($2)->type!="INT") || $3->type !="SET"){
-                errorMismatch(yylineno);
+            if(($2.type!="INT") || $3.type !="SET"){
+                output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$->type = "INT";
+            $$.type = "INT";
 			 
 		  }
 		  | Exp RELOPL Exp
 		  {
-			if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
-                errorMismatch(yylineno);
+			if((($1.type != "INT") &&($1.type != "BYTE"))  || (($3.type != "INT") &&($3.type != "BYTE"))  ){
+                output::errorMismatch(yylineno);
                 exit(0);
             }
             
-                $$->type ="BOOL";
+             $$.type ="BOOL";
             
-            }
+
 		  }| Exp RELOPR Exp
 		  {
-			  if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE"))  ){
-                errorMismatch(yylineno);
+			  if((($1.type != "INT") &&($1.type != "BYTE"))  || (($3.type != "INT") &&($3.type != "BYTE"))  ){
+                output::errorMismatch(yylineno);
                 exit(0);
             }
             
-                $$->type ="BOOL";
+                $$.type ="BOOL";
 		  }
 		  
 %%
@@ -335,13 +336,14 @@ int main()
 	yyparse();
 }
 		  
-int yyerror(const char * message)
+/*int yyerror(const char * message)
 {
 
 	output::errorSyn(yylineno);
 	exit(0);
-}
-		  
+}*/
+
+
 	  
 		  
 		  

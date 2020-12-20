@@ -1,6 +1,7 @@
 #ifndef _TYPES_
 #define _TYPES_
 #include <string>
+#include <vector>
 using namespace std;
 
     struct Node {
@@ -23,7 +24,6 @@ using namespace std;
     };
     class Exp: public Node{  //to do //till now I did not need this everything is handled in parser
                                  //should this raise a red flag? am I doing something worng?
-       public:
             
     };
     

@@ -10,26 +10,17 @@ class VarDecleration{
 	string name;
 	string type;    
 	int offset;
-	//vector<string> params; // added for function params (does not contain the return type)
+
 	public:
 	VarDecleration(string new_name, string new_type, int new_offset) : name(new_name), type(new_type), offset(new_offset){}
-	/*Decleration(string new_name, string new_type, int new_offset, vector<string> param_vec){  //added
-        this->name=new_name;
-        this->type=new_type; 
-        this->offset=new_offset;
-        this->params = param_vec;
-    }
-    vector<string> getparam(){
-        return this->params;
 
-    }*/
     string getName(){
         return name;
     }
     string getType(){
         return type;
     }
-    bool checkparam(vector<string> par_vec){  // added
+    /*bool checkparam(vector<string> par_vec){  // added
         for(int i=0; i<par_vec.size();i++){
             if((this->params[i] != par_vec[i])&& !( this->params[i]=="INT" && par_vec[i]=="BYTE"){
                 return false;            
@@ -37,7 +28,7 @@ class VarDecleration{
             }
         }
         return true;
-    }
+    }*/
     void setOffset(int new_offset){
         offset = new_offset;
     }
@@ -115,7 +106,7 @@ class symbolsTable{
 	string checkVariableDeclared(string var_name){
 		string var_type = "";
 		for(int i= names->size()-1 ; i>=0 ; i--){
-			for(int j=0; j<= *names[i].size() ; j++){
+			for(int j=0; j<= names[i].size() ; j++){
 				if(names[i][j].getName() == var_name){
 					var_type = names[i][j].getType();
 				}
