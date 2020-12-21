@@ -1,4 +1,4 @@
- %{
+%{
 //	#define YYERROR_VERBOSE 1 
 	#include <iostream>
 	#include <stdlib.h>
@@ -361,8 +361,3 @@ int main(){
 	output::errorSyn(yylineno);
 	exit(0);
 }*/
-
-
-	  
-		  
-		  

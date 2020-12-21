@@ -7,12 +7,12 @@ using namespace std;
 extern int yylineno;
 
 class VarDecleration{
-	string name;
-	string type;    
-	int offset;
+    string name;
+    string type;
+    int offset;
 
-	public:
-	VarDecleration(string new_name, string new_type, int new_offset) : name(new_name), type(new_type), offset(new_offset){}
+public:
+    VarDecleration(string new_name, string new_type, int new_offset) : name(new_name), type(new_type), offset(new_offset){}
 
     string getName(){
         return name;
@@ -25,7 +25,7 @@ class VarDecleration{
     }
     int getOffset(){
         return offset;
-	}
+    }
 };
 
 class FuncDecleration{
@@ -34,7 +34,7 @@ class FuncDecleration{
     vector<string> argsType;
 public:
     FuncDecleration(string func_name, string ret_type, vector<string> args_type) : name(func_name), retType(ret_type),
-                                                                                    argsType(args_type){}
+                                                                                   argsType(args_type){}
     string getName(){
         return name;
     }
@@ -48,27 +48,27 @@ public:
 
 
 class symbolsTable{
-	vector<int>* offsets;
-	vector<vector<VarDecleration>>* names;
+    vector<int>* offsets;
+    vector<vector<VarDecleration>>* names;
 
-	public:
-	symbolsTable() : offsets(new vector<int>), names(new vector<vector<VarDecleration>>()){}
-	
-	/*
-	  This function inserts a new variable to the symbols table, it could be
-	  a new variable declared in the scope or a function argument.
-	*/
-	void Insert(const string& name, const string& type, bool funcArg = false);
-	
-	void closeScope();
+public:
+    symbolsTable() : offsets(new vector<int>), names(new vector<vector<VarDecleration>>()){}
 
-	void openScope();
-	
-	/*
-	   This function checks if a variable with var_name was declared in outer scopes and returns its type.
-	   Returns an empty string if wasn't found.
-	*/
-	string checkVariableDeclared(const string& var_name);
+    /*
+      This function inserts a new variable to the symbols table, it could be
+      a new variable declared in the scope or a function argument.
+    */
+    void Insert(const string& name, const string& type, bool funcArg = false);
+
+    void closeScope();
+
+    void openScope();
+
+    /*
+       This function checks if a variable with var_name was declared in outer scopes and returns its type.
+       Returns an empty string if wasn't found.
+    */
+    string checkVariableDeclared(const string& var_name);
 
 };
 
@@ -89,6 +89,6 @@ public:
     void printTable();
 
 };
-   
-    
+
+
 #endif
