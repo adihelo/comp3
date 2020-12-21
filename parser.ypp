@@ -218,12 +218,14 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | NUM 
 		  {
-			  $$.type = "INT";
+            $$= new Exp((char*) "INT");  
+			  //$$.type = "INT";
               
 		  }
           | NUM B 
 		  {
-			 $$.type = "BYTE";
+			 
+             $$= new Exp((char*) "BYTE");
              if($1.name > 255 ){  //the stored value is name right?   //byte can't be above 255
                 output::errorByteTooLarge(yylineno, $1.name);
                 exit(0);
@@ -231,15 +233,16 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | STRING 
 		  {
-			  $$.type = "STRING";
+			 
+              $$= new Exp((char*) "STRING");
 		  }
           | TRUE 
 		  {
-			  $$.type = "BOOL";
+              $$= new Exp((char*) "BOOL");
 		  }
           | FALSE 
 		  {
-			  $$.type = "BOOL";
+              $$= new Exp((char*) "BOOL");
 		  }
           | NOT Exp 
 		  {
@@ -247,7 +250,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }else{
-                $$.type = "BOOL";
+                $$= new Exp((char*) "BOOL");
             
             }
 			  
@@ -258,7 +261,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$.type = "BOOL";
+            $$= new Exp((char*) "BOOL");
 		  }
           | Exp OR Exp 
 		  {
@@ -266,7 +269,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$.type ="BOOL";
+            $$= new Exp((char*) "BOOL");
 		  }
           | Exp ADDSUB Exp 
 		  {
@@ -276,9 +279,9 @@ Exp:        LPAREN Exp RPAREN
             }
             if(($1.type == "INT") ||($2.type == "INT")){
                 
-                $$.type = "INT";
+                $$= new Exp((char*) "INT");
             }else{
-                $$.type = "BYTE";
+                $$= new Exp((char*) "BOOL");
             
             }
 		  }
@@ -290,9 +293,9 @@ Exp:        LPAREN Exp RPAREN
             }
             if(($1.type == "INT") ||($2.type == "INT")){
                 
-                $$.type ="INT";
+                $$= new Exp((char*) "INT");
             }else{
-                $$.type ="BYTE";
+                $$= new Exp((char*) "BYTE");
             
             }
 		  }
@@ -306,7 +309,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$.type = "INT";
+            $$= new Exp((char*) "INT");
 			 
 		  }
 		  | Exp RELOPL Exp
@@ -316,7 +319,7 @@ Exp:        LPAREN Exp RPAREN
                 exit(0);
             }
             
-             $$.type ="BOOL";
+             $$= new Exp((char*) "BOOL");
             
 
 		  }| Exp RELOPR Exp
@@ -326,7 +329,7 @@ Exp:        LPAREN Exp RPAREN
                 exit(0);
             }
             
-                $$.type ="BOOL";
+                $$= new Exp((char*) "BOOL");
 		  }
 		  
 %%
