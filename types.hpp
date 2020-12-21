@@ -22,9 +22,14 @@ using namespace std;
 		}
     
     };
-    class Exp: public Node{  //to do //till now I did not need this everything is handled in parser
-                                 //should this raise a red flag? am I doing something worng?
-            
+    class Exp: public Node{  
+        public:
+        Exp(char* type){ 
+            this->type = type;
+        }
+        Exp(string type){
+            this->type = type;
+        }
     };
     
     class ExpList: public Node{
