@@ -10,15 +10,15 @@ using namespace std;
 	};
 	class Identifier: public Node {
 		public:
-		Identifier(string new_name){
+		explicit Identifier(string new_name){
 			name = new_name;
 		}
 	};
     
 	class Type: public Node{
         public:
-		Type(string new_type){
-			type = new_type;
+		explicit Type(string new_type) {
+		    type = new_type;
 		}
     
     };
@@ -32,8 +32,8 @@ using namespace std;
         vector<Exp> expList;
         
 		public:
-		ExpList(Exp* exp){
-			explist.push_back(exp);
+		explicit ExpList(Exp* exp){
+			expList.push_back(*exp);
 		}
         ExpList(Exp* exp, ExpList* list){
             expList = vector<Exp>(list);
@@ -42,7 +42,9 @@ using namespace std;
 	};
     class Call: public Node{
 		public:
-		Call(string value):type(value){}
+		explicit Call(string value){
+		    type = value;
+		}
 	};
 	
     #define YYSTYPE Node
