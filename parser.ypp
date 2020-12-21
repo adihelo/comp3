@@ -210,7 +210,11 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | ID //todo // I think this needs the function that looks up a variable
 		  {
-			 
+			 string type = vars_table.checkVariableDeclared((dynamic_cast<Exp*>$1->name));
+             if(type == ""){
+                output::errorUndef(yylineno, (dynamic_cast<Exp*>$1->name));
+             }
+             $$= new Exp(type);  
 		  }
           | Call 
 		  {
