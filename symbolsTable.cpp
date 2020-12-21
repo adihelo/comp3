@@ -92,3 +92,7 @@ void FuncsTable::printTable() {
         output::printID(function.getName(),0,func_type);
     }
 }
+
+string FuncsTable::lastFuncType() {
+    return functions->back().getType();
+}

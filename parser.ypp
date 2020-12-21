@@ -75,9 +75,9 @@ Funcs :
 		      
 		  }
 		  
-FuncDecl: RetType ID LPAREN Formals RPAREN LBRACE Statements RBRACE 
+FuncDecl: RetType ID LPAREN Formals RPAREN { funcs_table.Insert($2.name, $1.type, $4); } LBRACE Statements RBRACE
 		  {
-			funcs_table.Insert($2.name, $1.type, $4);
+
 		  }
 
 RetType:  Type
@@ -139,13 +139,21 @@ Statement: LBRACE {vars_table.openScope()} Statements {vars_table.closeScope()} 
                	   output::errorDef(yylineno, $2.name);
                	   exit(0);
                }
+               if($1.type != $4.type){
+                   output::errorMismatch(yylineno);
+                   exit(0);
+               }
                vars_table.Insert($2.name, $1.type);
 		      
 		  }
 		  | ID ASSIGN Exp SC	
 		  {
-		       if(vars_table.checkVariableDeclared($2.name) = ""){
-                    output::errorUndef(yylineno, $2.name);
+		       if(vars_table.checkVariableDeclared($1.name) == ""){
+                    output::errorUndef(yylineno, $1.name);
+                    exit(0);
+               }
+               if(vars_table.checkVariableDeclared($1.name) != $3.type){
+                    output::errorMismatch(yylineno);
                     exit(0);
                }
 		  }	
@@ -155,30 +163,61 @@ Statement: LBRACE {vars_table.openScope()} Statements {vars_table.closeScope()} 
 		  }
 		  | RETURN SC	
 		  {
-		      
+		      if(funcs_table.lastFuncType() != "VOID"){
+		          output::errorMismatch(yylineno);
+		          exit(0);
+		      }
 		  }
 		  | RETURN Exp SC
 		  {
+		      if(funcs_table.lastFuncType() != $2.type){
+              	  output::errorMismatch(yylineno);
+              	  exit(0);
+              }
 		      
 		  }
-		  | IF LPAREN Exp RPAREN Statement 	
+		  | IF LPAREN Exp RPAREN {
+		     if($3.type == "BOOL"){
+		         vars_table.openScope();
+		     }else{
+		         output::errorMismatch(yylineno);
+                 exit(0);
+		     }
+
+		  } Statement
 		  {
-		      
+		      vars_table.closeScope();
 		  }
-		  | IF LPAREN Exp RPAREN Statement ELSE Statement
+		  | IF LPAREN Exp RPAREN {
+		     if($3.type == "BOOL"){
+                 vars_table.openScope();
+             }else{
+                 output::errorMismatch(yylineno);
+                 exit(0);
+             }
+		   } Statement {vars_table.closeScope();} ELSE {vars_table.openScope();} Statement
 		  {
-		      
+		      vars_table.closeScope();
 		  }
-		  | WHILE LPAREN Exp RPAREN Statement
+		  | WHILE LPAREN Exp RPAREN {vars_table.openScope(); while_mode = true; } Statement
 		  {
-		      
+		      vars_table.closeScope();
+		      while_mode = false;
 		  }
 		  | BREAK SC
 		  {
+		      if(!while_mode){
+		          output::errorUnexpectedBreak(yylineno);
+		          exit(0);
+		      }
 		      
 		  }	
 		  | CONTINUE SC
 		  {
+		      if(!while_mode){
+		          output::errorUnexpectedContinue(yylineno);
+		          exit(0);
+		      }
 		      
 		  }
 		  

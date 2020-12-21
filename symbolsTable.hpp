@@ -85,6 +85,7 @@ public:
      * returned value: return type of the called function
      */
     string checkArgsValid(string func_name, vector<string> args);
+    string lastFuncType();
 
     void printTable();
 
