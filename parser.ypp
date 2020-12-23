@@ -189,19 +189,28 @@ Explist:    Exp
 
 Type :      INT 
           {
-			$$.type = $1.type;
+			$$= new Type($1.type);
 		  }
           |  BYTE 
 		  {
-			$$.type = $1.type;
+			$$= new Type($1.type);
 		  }
           | BOOL 
 		  {
-			$$.type = $1.type;
+            $$= new Type($1.type);
 		  }
           | SET LBRACKET NUM DOTS NUM RBRACKET 
 		  {
 			 //todo
+             if(($2->name >$3->name) || ($3->name - $2->name > 255)){
+                output::errorSetTooLarge(yylineno,$1->name, $2->name);  //I am confused with name in Node, shouldn't we save a value and a type.
+                exit(0);
+             }
+             if($2->name >$3->name){
+                output::errorSetTooLarge(yylineno,$1->name, $2->name);  //I am confused with name in Node, shouldn't we save a value and a type.
+                exit(0);
+             }
+             $$= new Type("SET");  // set the type to "SET";
 		  }
 
 Exp:        LPAREN Exp RPAREN 
@@ -305,7 +314,11 @@ Exp:        LPAREN Exp RPAREN
 		  }
 		  | Exp RELOPN Exp  //todo
 		  {
-			  
+			  if(!((($2.type=="INT")|| ($2.type =="BYTE")) && ($3.type == "SET"))){
+                output::errorMismatch(yylineno);
+                exit(0);
+            }
+            $$= new Exp((char*) "BOOL");
 		  }
           | LPAREN Type RPAREN Exp 
 		  {

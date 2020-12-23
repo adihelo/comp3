@@ -19,8 +19,8 @@ using namespace std;
         public:
 		Type(string new_type){
 			type = new_type;
-		}
-    
+		}	
+
     };
     class Exp: public Node{  
         public:
