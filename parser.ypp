@@ -75,7 +75,7 @@ Funcs :
 		      
 		  }
 		  
-FuncDecl: RetType ID LPAREN Formals RPAREN { funcs_table.Insert($2->name, $1->type, $4); } LBRACE Statements RBRACE
+FuncDecl: RetType ID LPAREN Formals RPAREN { funcs_table.Insert($2->name, $1->type, curr_func_args); } LBRACE Statements RBRACE
 		  {
 
 		  }
@@ -91,11 +91,11 @@ RetType:  Type
 
 Formals: 
 		  {
-		      $$ = curr_func_args;
+
 		  }
 		  | FormalsList
 		  {
-		      $$ = curr_func_args;
+
 		  }		
 
 FormalsList:FormalDecl 
@@ -210,49 +210,49 @@ Statement: LBRACE {vars_table.openScope();} Statements {vars_table.closeScope();
 		          output::errorUnexpectedBreak(yylineno);
 		          exit(0);
 		      }
-		      
-		  }	
+
+		  }
 		  | CONTINUE SC
 		  {
 		      if(!while_mode){
 		          output::errorUnexpectedContinue(yylineno);
 		          exit(0);
 		      }
-		      
+
 		  }
-		  
-Call:      ID LPAREN Explist RPAREN 
+
+Call:      ID LPAREN Explist RPAREN
           {
 			  $$=new Call(funcs_table.checkArgsValid($1->name,curr_explist));
 			  curr_explist.clear();
 		  }
-          | ID LPAREN RPAREN 
+          | ID LPAREN RPAREN
 		  {
 			 $$=new Call(funcs_table.checkArgsValid($1->name,curr_explist));
 		  }
 
-Explist:    Exp 
+Explist:    Exp
           {
 	         curr_explist.push_back($1->type);
 		  }
-          | Exp COMMA Explist 
+          | Exp COMMA Explist
 		  {
-            $$= new ExpList (dynamic_cast<Exp*>($1),dynamic_cast<ExpList*>($3));  
+
 		  }
 
-Type :      INT 
+Type :      INT
           {
 			$$= $1;
 		  }
-          |  BYTE 
+          |  BYTE
 		  {
 			$$= $1;
 		  }
-          | BOOL 
+          | BOOL
 		  {
             $$= $1;
 		  }
-          | SET LBRACKET NUM DOTS NUM RBRACKET 
+          | SET LBRACKET NUM DOTS NUM RBRACKET
 		  {
 			 if((dynamic_cast<Num*>$3)->getVal() <=0 || ((dynamic_cast<Num*>$5)->getVal() - (dynamic_cast<Num*>$3)->getVal()) > 255){
 			 output::errorSetTooLarge(yylineno,$3->name, $5->name);
@@ -261,7 +261,7 @@ Type :      INT
 			 $$ = new Type("SET");
 		  }
 
-Exp:        LPAREN Exp RPAREN 
+Exp:        LPAREN Exp RPAREN
           {
 			 $$=$1;
 		  }
@@ -271,38 +271,38 @@ Exp:        LPAREN Exp RPAREN
              if(type == ""){
                 output::errorUndef(yylineno, $1->name);
              }
-             $$= new Exp(type);  
+             $$= new Exp(type);
 		  }
-          | Call 
+          | Call
 		  {
-			  $$=$1; 
+			  $$=$1;
 		  }
-          | NUM 
+          | NUM
 		  {
             $$= new Exp("INT");
 		  }
-          | NUM B 
+          | NUM B
 		  {
-			 
+
              $$= new Exp("BYTE");
              if(dynamic_cast<Num*>$1->getVal() > 255 ){  //the stored value is name right?   //byte can't be above 255
                 output::errorByteTooLarge(yylineno, $1->name);
                 exit(0);
              }
 		  }
-          | STRING 
+          | STRING
 		  {
               $$= new Exp("STRING");
 		  }
-          | TRUE 
+          | TRUE
 		  {
               $$= new Exp("BOOL");
 		  }
-          | FALSE 
+          | FALSE
 		  {
               $$= new Exp("BOOL");
 		  }
-          | NOT Exp 
+          | NOT Exp
 		  {
             if($1->type != "BOOL"){
                 output::errorMismatch(yylineno);
