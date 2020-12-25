@@ -1,19 +1,19 @@
 %{
-//	#define YYERROR_VERBOSE 1 
+    #define YYSTYPE Node*
 	#include <iostream>
 	#include <stdlib.h>
 	#include "hw3_output.hpp"
-	#include "types.hpp"
-	#include "symbolsTable.hpp"
+	#include "parser.hpp"
 	using namespace std;
-	
 	extern int yylex();
 	extern int yylineno;
 	//int yyerror(const char * message);
 
     symbolsTable vars_table;         // The symbols table for variables.
     FuncsTable funcs_table;          // The table for all functions declared.
-    vector<string> curr_func_args;   //saves the args of the function currently being declared
+    vector<string> curr_func_args;   //saves the args of the function currently being declared.
+    vector<string> curr_explist;     //saves the args given to the currently called function.
+    bool while_mode = false;
 
 	
 %}
@@ -109,8 +109,8 @@ FormalsList:FormalDecl
 
 FormalDecl: Type ID
 		  {
-		      vars_table.Insert($2.name, $1.type,true);
-		      curr_func_args.push_back($1.type);
+		      vars_table.Insert($2->name, $1->type,true);
+		      curr_func_args.push_back($1->type);
 		  }
 		  
 Statements: Statement
@@ -121,38 +121,38 @@ Statements: Statement
 		  {
 		      
 		  }
-Statement: LBRACE {vars_table.openScope()} Statements {vars_table.closeScope()} RBRACE
+Statement: LBRACE {vars_table.openScope();} Statements {vars_table.closeScope();} RBRACE
 		  {
 		      
 		  }
 		  | Type ID SC	
 		  {
-		       if(vars_table.checkVariableDeclared($2.name) != ""){
-		           output::errorDef(yylineno, $2.name);
+		       if(vars_table.checkVariableDeclared($2->name) != ""){
+		           output::errorDef(yylineno, $2->name);
 		           exit(0);
 		       }
-		       vars_table.Insert($2.name, $1.type);
+		       vars_table.Insert($2->name, $1->type);
 		  }
 		  | Type ID ASSIGN Exp SC	
 		  {
-		       if(vars_table.checkVariableDeclared($2.name) != ""){
-               	   output::errorDef(yylineno, $2.name);
+		       if(vars_table.checkVariableDeclared($2->name) != ""){
+               	   output::errorDef(yylineno, $2->name);
                	   exit(0);
                }
-               if($1.type != $4.type){
+               if($1->type != $4.type){
                    output::errorMismatch(yylineno);
                    exit(0);
                }
-               vars_table.Insert($2.name, $1.type);
+               vars_table.Insert($2->name, $1->type);
 		      
 		  }
 		  | ID ASSIGN Exp SC	
 		  {
-		       if(vars_table.checkVariableDeclared($1.name) == ""){
-                    output::errorUndef(yylineno, $1.name);
+		       if(vars_table.checkVariableDeclared($1->name) == ""){
+                    output::errorUndef(yylineno, $1->name);
                     exit(0);
                }
-               if(vars_table.checkVariableDeclared($1.name) != $3.type){
+               if(vars_table.checkVariableDeclared($1->name) != $3.type){
                     output::errorMismatch(yylineno);
                     exit(0);
                }
@@ -223,57 +223,53 @@ Statement: LBRACE {vars_table.openScope()} Statements {vars_table.closeScope()} 
 		  
 Call:      ID LPAREN Explist RPAREN 
           {
-			  $$=new Call(funcs_table.checkArgsValid(($1->name,dynamic_cast<ExpList*>$3->types)); //not sure about the $1->name
+			  $$=new Call(funcs_table.checkArgsValid($1.name,curr_explist));
+			  curr_explist.clear();
 		  }
           | ID LPAREN RPAREN 
 		  {
-			 $$=new Call(funcs_table.checkArgsValid(($1->name,{}));
+			 $$=new Call(funcs_table.checkArgsValid($1.name,curr_explist));
 		  }
 
 Explist:    Exp 
           {
-	         $$= new ExpList (dynamic_cast<Exp*> ($1));
+	         curr_explist.push_back($1.type);
 		  }
           | Exp COMMA Explist 
 		  {
-			$$= new ExpList (dynamic_cast<Exp*>($1),dynamic_cast<ExpList*>($3));  
+
 		  }
 
 Type :      INT 
           {
-			$$= new Type($1.type);
+			$$= $1;
 		  }
           |  BYTE 
 		  {
-			$$= new Type($1.type);
+			$$= $1;
 		  }
           | BOOL 
 		  {
-            $$= new Type($1.type);
+            $$= $1;
 		  }
           | SET LBRACKET NUM DOTS NUM RBRACKET 
 		  {
-			 //todo
-             if(($2->name >$3->name) || ($3->name - $2->name > 255)){
-                output::errorSetTooLarge(yylineno,$1->name, $2->name);  //I am confused with name in Node, shouldn't we save a value and a type.
-                exit(0);
-             }
-             if($2->name >$3->name){
-                output::errorSetTooLarge(yylineno,$1->name, $2->name);  //I am confused with name in Node, shouldn't we save a value and a type.
-                exit(0);
-             }
-             $$= new Type("SET");  // set the type to "SET";
+			 if($3.value <=0 || ($5.value - $3.value) > 255){
+			 output::errorSetTooLarge(yylineno,$3.name, $5.name);
+             exit(0);
+			 }
+			 $$ = new Type("SET");
 		  }
 
 Exp:        LPAREN Exp RPAREN 
           {
 			 $$=$1;
 		  }
-          | ID //todo // I think this needs the function that looks up a variable
+          | ID
 		  {
-			 string type = vars_table.checkVariableDeclared((dynamic_cast<Exp*>$1->name));
+			 string type = vars_table.checkVariableDeclared($1.name));
              if(type == ""){
-                output::errorUndef(yylineno, (dynamic_cast<Exp*>$1->name));
+                output::errorUndef(yylineno, $1.name));
              }
              $$= new Exp(type);  
 		  }
@@ -283,31 +279,28 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | NUM 
 		  {
-            $$= new Exp((char*) "INT");  
-			  //$$.type = "INT";
-              
+            $$= new Exp("INT");
 		  }
           | NUM B 
 		  {
 			 
-             $$= new Exp((char*) "BYTE");
-             if($1.name > 255 ){  //the stored value is name right?   //byte can't be above 255
+             $$= new Exp("BYTE");
+             if($1.value > 255 ){  //the stored value is name right?   //byte can't be above 255
                 output::errorByteTooLarge(yylineno, $1.name);
                 exit(0);
              }
 		  }
           | STRING 
 		  {
-			 
-              $$= new Exp((char*) "STRING");
+              $$= new Exp("STRING");
 		  }
           | TRUE 
 		  {
-              $$= new Exp((char*) "BOOL");
+              $$= new Exp("BOOL");
 		  }
           | FALSE 
 		  {
-              $$= new Exp((char*) "BOOL");
+              $$= new Exp("BOOL");
 		  }
           | NOT Exp 
 		  {
@@ -315,7 +308,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }else{
-                $$= new Exp((char*) "BOOL");
+                $$= new Exp("BOOL");
             
             }
 			  
@@ -326,7 +319,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$= new Exp((char*) "BOOL");
+            $$= new Exp("BOOL");
 		  }
           | Exp OR Exp 
 		  {
@@ -334,9 +327,9 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$= new Exp((char*) "BOOL");
+            $$= new Exp("BOOL");
 		  }
-          | Exp ADDSUB Exp 
+          | Exp ADDSUB Exp       //todo: need to add SET to binop
 		  {
 			 if((($1.type != "INT") &&($1.type != "BYTE"))  || (($3.type != "INT") &&($3.type != "BYTE")) ){
                 output::errorMismatch(yylineno);
@@ -344,13 +337,13 @@ Exp:        LPAREN Exp RPAREN
             }
             if(($1.type == "INT") ||($2.type == "INT")){
                 
-                $$= new Exp((char*) "INT");
+                $$= new Exp("INT");
             }else{
-                $$= new Exp((char*) "BOOL");
+                $$= new Exp("BOOL");
             
             }
 		  }
-          | Exp MULDIV Exp 
+          | Exp MULDIV Exp       //todo: need to add SET to binop
 		  {
 			  if((($1.type != "INT") &&($1.type != "BYTE"))  || (($3.type != "INT") &&($3.type != "BYTE"))){
                 output::errorMismatch(yylineno);
@@ -358,9 +351,9 @@ Exp:        LPAREN Exp RPAREN
             }
             if(($1.type == "INT") ||($2.type == "INT")){
                 
-                $$= new Exp((char*) "INT");
+                $$= new Exp("INT");
             }else{
-                $$= new Exp((char*) "BYTE");
+                $$= new Exp("BYTE");
             
             }
 		  }
@@ -370,7 +363,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$= new Exp((char*) "BOOL");
+            $$= new Exp("BOOL");
 		  }
           | LPAREN Type RPAREN Exp 
 		  {
@@ -378,7 +371,7 @@ Exp:        LPAREN Exp RPAREN
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            $$= new Exp((char*) "INT");
+            $$= new Exp("INT");
 			 
 		  }
 		  | Exp RELOPL Exp
@@ -388,7 +381,7 @@ Exp:        LPAREN Exp RPAREN
                 exit(0);
             }
             
-             $$= new Exp((char*) "BOOL");
+             $$= new Exp("BOOL");
             
 
 		  }| Exp RELOPR Exp
@@ -398,7 +391,7 @@ Exp:        LPAREN Exp RPAREN
                 exit(0);
             }
             
-                $$= new Exp((char*) "BOOL");
+                $$= new Exp("BOOL");
 		  }
 		  
 %%

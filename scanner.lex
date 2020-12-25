@@ -1,9 +1,9 @@
 %{
 
 /* Declarations section */
-#include "types.hpp"
 #include "hw3_output.hpp"
 #include "parser.tab.hpp"
+#include "parser.hpp"
 
 
 %}
@@ -19,16 +19,16 @@ whitespace		([\r\t\n ])
 
 "void"                                      return VOID;
 "int"                                       {
-                                               yylval = Integer("INT");	
+                                               yylval = new Type("INT");
 	                                           return INT;
 											}
 "byte"                                      {
-	                                           yylval = Byte("BYTE");
+	                                           yylval = new Type("BYTE");
 	                                           return BYTE;
                                             }
 "b"                                         return B;
 "bool"                                      {
-	                                           yylval = Bool("BOOL");
+	                                           yylval = new Type("BOOL");
                                                return BOOL;
 											}
 "and"                                       return AND;
@@ -51,7 +51,7 @@ whitespace		([\r\t\n ])
 "}"                                         return RBRACE;
 "["                                         return LBRACKET;
 "]"                                         return RBRACKET;
-"in"                                         return RELOPN;
+"in"                                        return RELOPN;
 "="                                         return ASSIGN;
 "<"|">"|"<="|">="                           return RELOPL;
 "=="|"!="                                   return RELOPR;
@@ -59,10 +59,14 @@ whitespace		([\r\t\n ])
 \*|\/							            return MULDIV;
 \.\.                                        return DOTS;
 {letter}({letter}|{digit})*                 {
-	                                           yylval =  Identifier(yytext);
+	                                           yylval =  new Identifier(yytext);
 	                                           return ID;
                                             }
-0|[1-9]{digit}*                             return NUM;
+0|[1-9]{digit}*                             {
+                                               yylval = new Num(yytext);
+                                               return NUM;
+                                            }
+
 \"([^\n\r\"\\]|\\[rnt"\\])+\"               return STRING;
 {whitespace}                                /* ignore */;
 "//"[^\r\n]*[\r\n|\n|\r]?                  /* ignore */;
