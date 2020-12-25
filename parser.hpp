@@ -36,7 +36,20 @@ public:
         this->type = type;
     }
 };
-
+    
+class ExpList: public Node{
+        //vector for the explist, each element is of type exp
+        vector<Exp> expList;
+        
+		public:
+		ExpList(Exp* exp){
+			explist.push_back(exp);
+		}
+        ExpList(Exp* exp, ExpList* list){
+            expList = vector<Exp>(list);
+            expList.emplace(expList.begin(),Exp); // at the begging of the vector
+		}
+	};
 class Num : public Node{
     int value;
 public:

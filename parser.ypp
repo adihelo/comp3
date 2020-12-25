@@ -237,7 +237,7 @@ Explist:    Exp
 		  }
           | Exp COMMA Explist 
 		  {
-
+            $$= new ExpList (dynamic_cast<Exp*>($1),dynamic_cast<ExpList*>($3));  
 		  }
 
 Type :      INT 
