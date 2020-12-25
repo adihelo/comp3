@@ -13,7 +13,6 @@ struct Node {
 };
 
 
-
 class Identifier: public Node {
 public:
     explicit Identifier(string new_name){
@@ -44,6 +43,9 @@ public:
         stringstream geek(num);
         geek >> value;
     }
+    int getVal(){
+        return value;
+    }
 };
 
 class Call: public Node{
@@ -52,6 +54,7 @@ public:
         type = value;
     }
 };
+#define YYSTYPE Node*
 
 /*
  **************************************************************

@@ -2,8 +2,9 @@
 
 /* Declarations section */
 #include "hw3_output.hpp"
-#include "parser.tab.hpp"
 #include "parser.hpp"
+#include "parser.tab.hpp"
+
 
 
 %}
