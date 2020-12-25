@@ -77,6 +77,7 @@ Funcs :
 		  
 FuncDecl: RetType ID LPAREN Formals RPAREN { funcs_table.Insert($2->name, $1->type, curr_func_args); } LBRACE Statements RBRACE
 		  {
+		      curr_func_args.clear();
 
 		  }
 
