@@ -177,7 +177,7 @@ Statement: LBRACE {vars_table.openScope();} Statements {vars_table.closeScope();
 		      
 		  }
 		  | IF LPAREN Exp RPAREN {
-		     if($3.type == "BOOL"){
+		     if($3->type == "BOOL"){
 		         vars_table.openScope();
 		     }else{
 		         output::errorMismatch(yylineno);
@@ -254,7 +254,7 @@ Type :      INT
 		  }
           | SET LBRACKET NUM DOTS NUM RBRACKET 
 		  {
-			 if($3->getVal() <=0 || ($5->getVal() - $3->getVal()) > 255){
+			 if((dynamic_cast<Num*>$3)->getVal() <=0 || ((dynamic_cast<Num*>$5)->getVal() - (dynamic_cast<Num*>$3)->getVal()) > 255){
 			 output::errorSetTooLarge(yylineno,$3->name, $5->name);
              exit(0);
 			 }
@@ -267,9 +267,9 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | ID
 		  {
-			 string type = vars_table.checkVariableDeclared($1->name));
+			 string type = vars_table.checkVariableDeclared($1->name);
              if(type == ""){
-                output::errorUndef(yylineno, $1->name));
+                output::errorUndef(yylineno, $1->name);
              }
              $$= new Exp(type);  
 		  }
@@ -285,7 +285,7 @@ Exp:        LPAREN Exp RPAREN
 		  {
 			 
              $$= new Exp("BYTE");
-             if($1->getVal() > 255 ){  //the stored value is name right?   //byte can't be above 255
+             if(dynamic_cast<Num*>$1->getVal() > 255 ){  //the stored value is name right?   //byte can't be above 255
                 output::errorByteTooLarge(yylineno, $1->name);
                 exit(0);
              }
@@ -304,7 +304,7 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | NOT Exp 
 		  {
-            if($1.type != "BOOL"){
+            if($1->type != "BOOL"){
                 output::errorMismatch(yylineno);
                 exit(0);
             }else{

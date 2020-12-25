@@ -7,9 +7,11 @@
 using namespace std;
 extern int yylineno;
 
-struct Node {
+class Node {
+     public:
     string name;
     string type;
+    virtual void makeItPolymorphic(){}
 };
 
 
