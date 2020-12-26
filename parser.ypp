@@ -8,8 +8,8 @@
 	extern int yylineno;
 	int yyerror(const char * message);
 
-    symbolsTable vars_table;         // The symbols table for variables.
-    FuncsTable funcs_table;          // The table for all functions declared.
+    symbolsTable* vars_table = new symbolsTable();         // The symbols table for variables.
+    FuncsTable* funcs_table = new FuncsTable();          // The table for all functions declared.
     vector<string> curr_func_args;   //saves the args of the function currently being declared.
     vector<string> curr_explist;     //saves the args given to the currently called function.
     bool while_mode = false;
@@ -62,7 +62,7 @@
 
 Program:  Funcs
           {
-			  funcs_table.printTable();
+			  funcs_table->printTable();
 		  }
 		  
 Funcs :  
@@ -70,12 +70,12 @@ Funcs :
 		      
 		  } 	
 
-		  | FuncDecl Funcs 
+		  | {vars_table->openScope();} FuncDecl {vars_table->closeScope();} Funcs
 		  {
 		      
 		  }
 		  
-FuncDecl: RetType ID LPAREN Formals RPAREN { funcs_table.Insert($2->name, $1->type, curr_func_args); } LBRACE Statements RBRACE
+FuncDecl: RetType ID LPAREN Formals RPAREN { funcs_table->Insert($2->name, $1->getType(), curr_func_args); } LBRACE Statements RBRACE
 		  {
 		      curr_func_args.clear();
 
@@ -87,7 +87,8 @@ RetType:  Type
 		  }
 		  | VOID
 		  {
-			  $$->type = "VOID";
+			  $$ = new Type("VOID");
+
 		  }
 
 Formals: 
@@ -96,6 +97,7 @@ Formals:
 		  }
 		  | FormalsList
 		  {
+
 
 		  }		
 
@@ -110,8 +112,9 @@ FormalsList:FormalDecl
 
 FormalDecl: Type ID
 		  {
-		      vars_table.Insert($2->name, $1->type,true);
+		      vars_table->Insert($2->name, $1->type,true);
 		      curr_func_args.push_back($1->type);
+
 		  }
 		  
 Statements: Statement
@@ -122,21 +125,23 @@ Statements: Statement
 		  {
 		      
 		  }
-Statement: LBRACE {vars_table.openScope();} Statements {vars_table.closeScope();} RBRACE
+Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope();} RBRACE
 		  {
 		      
 		  }
 		  | Type ID SC	
 		  {
-		       if(vars_table.checkVariableDeclared($2->name) != ""){
+		       if(vars_table->checkVariableDeclared($2->name) != ""){
 		           output::errorDef(yylineno, $2->name);
 		           exit(0);
 		       }
-		       vars_table.Insert($2->name, $1->type);
+
+		       vars_table->Insert($2->name, $1->type);
+
 		  }
 		  | Type ID ASSIGN Exp SC	
 		  {
-		       if(vars_table.checkVariableDeclared($2->name) != ""){
+		       if(vars_table->checkVariableDeclared($2->name) != ""){
                	   output::errorDef(yylineno, $2->name);
                	   exit(0);
                }
@@ -144,16 +149,16 @@ Statement: LBRACE {vars_table.openScope();} Statements {vars_table.closeScope();
                    output::errorMismatch(yylineno);
                    exit(0);
                }
-               vars_table.Insert($2->name, $1->type);
+               vars_table->Insert($2->name, $1->type);
 		      
 		  }
 		  | ID ASSIGN Exp SC	
 		  {
-		       if(vars_table.checkVariableDeclared($1->name) == ""){
+		       if(vars_table->checkVariableDeclared($1->name) == ""){
                     output::errorUndef(yylineno, $1->name);
                     exit(0);
                }
-               if(vars_table.checkVariableDeclared($1->name) != $3->type){
+               if(vars_table->checkVariableDeclared($1->name) != $3->type){
                     output::errorMismatch(yylineno);
                     exit(0);
                }
@@ -164,45 +169,30 @@ Statement: LBRACE {vars_table.openScope();} Statements {vars_table.closeScope();
 		  }
 		  | RETURN SC	
 		  {
-		      if(funcs_table.lastFuncType() != "VOID"){
+		      if(funcs_table->lastFuncType() != "VOID"){
 		          output::errorMismatch(yylineno);
 		          exit(0);
 		      }
 		  }
 		  | RETURN Exp SC
 		  {
-		      if(funcs_table.lastFuncType() != $2->type){
+		      if(funcs_table->lastFuncType() != $2->type){
               	  output::errorMismatch(yylineno);
               	  exit(0);
               }
 		      
 		  }
-		  | IF LPAREN Exp RPAREN {
-		     if($3->type == "BOOL"){
-		         vars_table.openScope();
-		     }else{
-		         output::errorMismatch(yylineno);
-                 exit(0);
-		     }
-
-		  } Statement
+		  | IF LPAREN ExpBool RPAREN Statement
 		  {
-		      vars_table.closeScope();
+		      vars_table->closeScope();
 		  }
-		  | IF LPAREN Exp RPAREN {
-		     if($3->type == "BOOL"){
-                 vars_table.openScope();
-             }else{
-                 output::errorMismatch(yylineno);
-                 exit(0);
-             }
-		   } Statement {vars_table.closeScope();} ELSE {vars_table.openScope();} Statement
+		  | IF LPAREN ExpBool RPAREN Statement ELSE { vars_table->closeScope(); vars_table->openScope();} Statement
 		  {
-		      vars_table.closeScope();
+		      vars_table->closeScope();
 		  }
-		  | WHILE LPAREN Exp RPAREN {vars_table.openScope(); while_mode = true; } Statement
+		  | WHILE LPAREN Exp RPAREN {vars_table->openScope(); while_mode = true; } Statement
 		  {
-		      vars_table.closeScope();
+		      vars_table->closeScope();
 		      while_mode = false;
 		  }
 		  | BREAK SC
@@ -221,15 +211,21 @@ Statement: LBRACE {vars_table.openScope();} Statements {vars_table.closeScope();
 		      }
 
 		  }
+ExpBool: Exp{
+    if($1->type == "BOOL"){
+        output::errorMismatch(yylineno);
+        exit(0);
+    }
+}
 
 Call:      ID LPAREN Explist RPAREN
           {
-			  $$=new Call(funcs_table.checkArgsValid($1->name,curr_explist));
+			  $$=new Call(funcs_table->checkArgsValid($1->name,curr_explist));
 			  curr_explist.clear();
 		  }
           | ID LPAREN RPAREN
 		  {
-			 $$=new Call(funcs_table.checkArgsValid($1->name,curr_explist));
+			 $$=new Call(funcs_table->checkArgsValid($1->name,curr_explist));
 		  }
 
 Explist:    Exp
@@ -268,7 +264,7 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | ID
 		  {
-			 string type = vars_table.checkVariableDeclared($1->name);
+			 string type = vars_table->checkVariableDeclared($1->name);
              if(type == ""){
                 output::errorUndef(yylineno, $1->name);
              }

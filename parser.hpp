@@ -1,5 +1,7 @@
 #ifndef _TYPES_
 #define _TYPES_
+
+#include <iostream>
 #include <string>
 #include <vector>
 #include <sstream>
@@ -12,6 +14,18 @@ public:
     string name;
     string type;
     virtual void makeItPolymorphic(){}
+    virtual string getName(){
+        return name;
+    }
+    virtual string getType(){
+        return type;
+    }
+    virtual void setName(string new_name){
+        name = new_name;
+    }
+    virtual void setType(string new_type){
+        type = new_type;
+    }
 };
 
 
@@ -117,6 +131,8 @@ public:
       a new variable declared in the scope or a function argument.
     */
     void Insert(const string& name, const string& type, bool funcArg = false){
+        std::cout << "okkk" << std::endl;
+
         if(offsets->empty()){
             if(funcArg){
                 offsets->push_back(-1);
