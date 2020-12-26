@@ -131,7 +131,6 @@ public:
       a new variable declared in the scope or a function argument.
     */
     void Insert(const string& name, const string& type, bool funcArg = false){
-        std::cout << "okkk" << std::endl;
 
         if(offsets->empty()){
             if(funcArg){
@@ -139,6 +138,11 @@ public:
             } else{
                 offsets->push_back(0);
             }
+            vector<VarDecleration> new_vec;
+            names->push_back(new_vec);
+        }
+        if(!funcArg && offsets->back() < 0){
+            offsets->back()=0;
         }
         VarDecleration decleration(name,type, offsets->back());
         if(offsets->back() < 0){
@@ -155,6 +159,7 @@ public:
         }
         offsets->pop_back();
         names->pop_back();
+        output::endScope();
     }
 
     void openScope(){
@@ -175,11 +180,12 @@ public:
        Returns an empty string if wasn't found.
     */
     string checkVariableDeclared(const string& var_name){
+
         string var_type;
         for(int i= names->size()-1 ; i>=0 ; i--){
-            for(int j=0; j<= names[i].size() ; j++){
-                if((*names)[i][j].getName() == var_name){
-                    var_type = (*names)[i][j].getType();
+            for(auto & j : (*names)[i]){
+                if(j.getName() == var_name){
+                    var_type = j.getType();
                 }
             }
         }
