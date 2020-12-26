@@ -212,7 +212,7 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 
 		  }
 ExpBool: Exp{
-    if($1->type == "BOOL"){
+    if($1->type != "BOOL"){
         output::errorMismatch(yylineno);
         exit(0);
     }
@@ -251,7 +251,8 @@ Type :      INT
 		  }
           | SET LBRACKET NUM DOTS NUM RBRACKET
 		  {
-			 if((dynamic_cast<Num*>$3)->getVal() <=0 || ((dynamic_cast<Num*>$5)->getVal() - (dynamic_cast<Num*>$3)->getVal()) > 255){
+			 if((dynamic_cast<Num*>$3)->getVal() <0 || (((dynamic_cast<Num*>$5)->getVal() - (dynamic_cast<Num*>$3)->getVal()) > 255) 
+             || ((dynamic_cast<Num*>$3)->getVal() >= (dynamic_cast<Num*>$5)->getVal())){
 			 output::errorSetTooLarge(yylineno,$3->name, $5->name);
              exit(0);
 			 }
@@ -260,7 +261,7 @@ Type :      INT
 
 Exp:        LPAREN Exp RPAREN
           {
-			 $$=$1;
+			 $$=$2;
 		  }
           | ID
 		  {
@@ -328,17 +329,23 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | Exp ADDSUB Exp       //todo: need to add SET to binop
 		  {
-			 if((($1->type != "INT") &&($1->type != "BYTE"))  || (($3->type != "INT") &&($3->type != "BYTE")) ){
+           
+			 if((($1->type != "INT") &&($1->type != "BYTE") &&($1->type != "SET"))  || (($3->type != "INT") &&($3->type != "BYTE") &&($3->type != "SET"))){
                 output::errorMismatch(yylineno);
                 exit(0);
             }
-            if(($1->type == "INT") ||($2->type == "INT")){
+            if(($1->type == "SET") ||($3->type == "SET")){
+                $$= new Exp("SET");
+            }
+            else if(($1->type == "INT") ||($3->type == "INT")){
+            
                 
                 $$= new Exp("INT");
             }else{
                 $$= new Exp("BOOL");
             
             }
+            
 		  }
           | Exp MULDIV Exp       //todo: need to add SET to binop
 		  {
@@ -356,7 +363,7 @@ Exp:        LPAREN Exp RPAREN
 		  }
 		  | Exp RELOPN Exp  //todo
 		  {
-			  if(!((($2->type=="INT")|| ($2->type =="BYTE")) && ($3->type == "SET"))){
+			  if(!((($1->type=="INT")|| ($1->type =="BYTE")) && ($3->type == "SET"))){
                 output::errorMismatch(yylineno);
                 exit(0);
             }
@@ -364,7 +371,8 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | LPAREN Type RPAREN Exp 
 		  {
-            if(($2->type!="INT") || $3->type !="SET"){
+          
+            if(($2->type!="INT") ||($4->type != "SET")){
                 output::errorMismatch(yylineno);
                 exit(0);
             }

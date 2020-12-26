@@ -130,7 +130,7 @@ public:
       This function inserts a new variable to the symbols table, it could be
       a new variable declared in the scope or a function argument.
     */
-    void Insert(const string& name, const string& type, bool funcArg = false){
+    void Insert(const string name, const string type, bool funcArg = false){
 
         if(offsets->empty()){
             if(funcArg){
@@ -179,7 +179,7 @@ public:
        This function checks if a variable with var_name was declared in outer scopes and returns its type.
        Returns an empty string if wasn't found.
     */
-    string checkVariableDeclared(const string& var_name){
+    string checkVariableDeclared(const string var_name){
 
         string var_type;
         for(int i= names->size()-1 ; i>=0 ; i--){
