@@ -62,12 +62,16 @@
 
 Program:  Funcs
           {
+
 			  funcs_table->printTable();
 		  }
 		  
 Funcs :  
 		  {
-		      
+		    if(!funcs_table->checkMain()){
+               output::errorMainMissing();
+               exit(0);
+            }
 		  } 	
 
 		  | {vars_table->openScope();} FuncDecl {vars_table->closeScope();} Funcs
@@ -212,7 +216,7 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 
 		  }
 ExpBool: Exp{
-    if($1->type == "BOOL"){
+    if($1->type != "BOOL"){
         output::errorMismatch(yylineno);
         exit(0);
     }
@@ -356,7 +360,7 @@ Exp:        LPAREN Exp RPAREN
 		  }
 		  | Exp RELOPN Exp  //todo
 		  {
-			  if(!((($2->type=="INT")|| ($2->type =="BYTE")) && ($3->type == "SET"))){
+			  if(!((($1->type=="INT")|| ($1->type =="BYTE")) && ($3->type == "SET"))){
                 output::errorMismatch(yylineno);
                 exit(0);
             }

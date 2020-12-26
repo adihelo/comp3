@@ -154,12 +154,13 @@ public:
     }
 
     void closeScope(){
+        output::endScope();
         for (auto & i : names->back()) {
             output::printID(i.getName(), i.getOffset(), i.getType());
         }
         offsets->pop_back();
         names->pop_back();
-        output::endScope();
+
     }
 
     void openScope(){
@@ -246,6 +247,15 @@ public:
             string func_type = output::makeFunctionType(function.getType(), args_v);
             output::printID(function.getName(),0,func_type);
         }
+    }
+
+    bool checkMain(){
+        for (int i = 0; i < functions->size() ; ++i) {
+            if((*functions)[i].getName() == "main" && (*functions)[i].getType()== "void"){
+                return true;
+            }
+        }
+        return false;
     }
 
 };
