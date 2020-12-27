@@ -55,6 +55,7 @@ class Num : public Node{
     int value;
 public:
     explicit Num(string num){
+        type = "INT";
         name = num;
         stringstream geek(num);
         geek >> value;
@@ -153,71 +154,32 @@ public:
         } else{
             offsets->back() += 1;
         }
-
         names->back().push_back(decleration);
     }
 
     void closeScope(){
-<<<<<<< HEAD
         output::endScope();
-=======
-       // printf("1\n");
->>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
         for (auto & i : names->back()) {
-            //std::cout<<"2 i name " <<i.getName()<<std::endl;
             output::printID(i.getName(), i.getOffset(), i.getType());
-            // printf("3 i %d\n",i.getOffset());
         }
-         names->pop_back();
-         //printf("4\n");
-          if(!(offsets->empty())){
+        if(offsets->size()) {
             offsets->pop_back();
-           
-            //return;
+            names->pop_back();
         }
-<<<<<<< HEAD
-        offsets->pop_back();
-        names->pop_back();
 
-=======
-        
-        // printf("5\n");
-         
-        
-        
-         //printf("6\n");
-        output::endScope();
-        // printf("7\n");
->>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
     }
 
     void openScope(){
-        //printf("1\n");
-      
-       // std::cout << "1 " << std::endl;
         vector<VarDecleration> new_vec;
-        //printf("2\n"); 
         names->push_back(new_vec);
-       // printf("3\n");
         if(offsets->empty()){
-          //  printf("3\n");
             return;
         }
-       // printf("4\n");
         if(offsets->back() < 0){
-           // printf("5\n");
             offsets->push_back(0);
-            //printf("6\n");
         } else{
-<<<<<<< HEAD
             offsets->push_back(offsets->back());
-=======
-           // printf("7\n");
-            offsets->push_back(offsets->back()+1);
-         //   printf("8\n");
->>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
         }
-       // printf("9\n");
     }
 
     /*
@@ -249,10 +211,11 @@ public:
         Insert("printi", "VOID", printi_vec);
     }
     void Insert(string name, string ret_type, vector<string> args_type)  {
-        if(name == "main" && (ret_type != "VOID" || args_type.size() !=0)){
+        /*if(name == "main" && (ret_type != "VOID" || args_type.size() !=0)){
+            output::endScope();
             output::errorMainMissing();
             exit(0);
-        }
+        }*/
         FuncDecleration function = FuncDecleration(name, ret_type, args_type);
         functions->push_back(function);
     }
@@ -263,7 +226,7 @@ public:
      * and if the function exists.
      * returned value: return type of the called function
      */
-    string checkArgsValid(const string func_name, vector<string> args){
+    string checkArgsValid(const string& func_name, vector<string> args){
         bool exists = false;
         string ret_type;
         vector<string> reversed;
@@ -272,6 +235,11 @@ public:
         }
         for (auto & function : *functions) {
             if(function.getName() == func_name){
+                if(function.getArgs().size() != args.size()){
+                    vector<string> args_vec = function.getArgs();
+                    output::errorPrototypeMismatch(yylineno, func_name, args_vec);
+                    exit(0);
+                }
                 exists = true;
                 ret_type = function.getType();
                 for (int j = 0; j < function.getArgs().size(); ++j) {
@@ -303,7 +271,7 @@ public:
 
     bool checkMain(){
         for (auto & function : *functions) {
-            if(function.getName() == "main" && function.getType()== "VOID"){
+            if(function.getName() == "main" && function.getType()== "VOID" && function.getArgs().empty()){
                 return true;
             }
         }

@@ -75,26 +75,19 @@ Funcs :
             }
 		  } 	
 
-		  |  { vars_table->openScope();
-     } FuncDecl  Funcs
+		  | {vars_table->openScope();} FuncDecl {vars_table->closeScope();} Funcs
 		  {
 		      
 		  }
 		  
-FuncDecl:  
-      RetType ID LPAREN Formals RPAREN { funcs_table->Insert($2->name, $1->getType(), curr_func_args); } LBRACE Statements  RBRACE 
+FuncDecl: RetType ID LPAREN Formals RPAREN { funcs_table->Insert($2->name, $1->getType(), curr_func_args); } LBRACE Statements RBRACE
 		  {
 		      curr_func_args.clear();
-              
-        vars_table->closeScope();
-     
-              
 		  }
 
 RetType:  Type
           {
 			  $$->type = $1->type;
-              // $$ = new Type($1->type);
 		  }
 		  | VOID
 		  {
@@ -134,7 +127,7 @@ FormalDecl: Type ID
 		  
 Statements: Statement
 		  {
-		      
+
 		  }
 		  | Statements Statement	
 		  {
@@ -152,7 +145,6 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		           exit(0);
 		       }
 		       vars_table->Insert($2->name, $1->type);
-
 		  }
 		  | Type ID ASSIGN Exp SC	
 		  {
@@ -169,21 +161,12 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		  }
 		  | ID ASSIGN Exp SC	
 		  {
-<<<<<<< HEAD
 		       string id_type = vars_table->checkVariableDeclared($1->name);
 		       if(id_type == ""){
                     output::errorUndef(yylineno, $1->name);
                     exit(0);
                }
                if(id_type != $3->type && !(id_type == "INT" && $3->type == "BYTE")){
-=======
-             string type = vars_table->checkVariableDeclared($1->name) ;
-		       if(type == ""){
-                    output::errorUndef(yylineno, $1->name);
-                    exit(0);
-               }
-               if((type == "INT" && $3->type != "BYTE") && type!= $3->type){
->>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
                     output::errorMismatch(yylineno);
                     exit(0);
                }
@@ -201,23 +184,16 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		  }
 		  | RETURN Exp SC
 		  {
-<<<<<<< HEAD
-
 		      if(funcs_table->lastFuncType() != $2->type && ! (funcs_table->lastFuncType()== "INT" && $2->type == "BYTE")){
-=======
-          string type = funcs_table->lastFuncType();
-               if((type == "INT"  && ($2->type !="BYTE" && $2->type != "INT")) || type != $2->type ){
->>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
               	  output::errorMismatch(yylineno);
               	  exit(0);
               }
-		      
 		  }
-		  | IF LPAREN ExpBool RPAREN M1 Statement
+		  | IF LPAREN ExpBool RPAREN Statement
 		  {
-		     vars_table->closeScope();
+		      vars_table->closeScope();
 		  }
-		  | IF LPAREN ExpBool RPAREN M1 Statement ELSE { vars_table->closeScope(); vars_table->openScope();} Statement
+		  | IF LPAREN ExpBool RPAREN Statement ELSE {  vars_table->closeScope(); vars_table->openScope();} Statement
 		  {
 		      vars_table->closeScope();
 		  }
@@ -242,6 +218,8 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		      }
 
 		  }
+
+
 ExpBool: Exp{
     if($1->type != "BOOL"){
         output::errorMismatch(yylineno);
@@ -249,9 +227,7 @@ ExpBool: Exp{
     }
     vars_table->openScope();
 }
-M1 : { 
-        vars_table->openScope();
-     }
+
 Call:      ID LPAREN Explist RPAREN
           {
 			  $$=new Call(funcs_table->checkArgsValid($1->name,curr_explist));
@@ -299,7 +275,6 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | ID
 		  {
-
 			 string type = vars_table->checkVariableDeclared($1->name);
              if(type == ""){
                 output::errorUndef(yylineno, $1->name);
