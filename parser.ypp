@@ -62,8 +62,9 @@
 
 Program:  Funcs
           {
-
+              output::endScope();
 			  funcs_table->printTable();
+
 		  }
 		  
 Funcs :  
@@ -116,6 +117,10 @@ FormalsList:FormalDecl
 
 FormalDecl: Type ID
 		  {
+		      if(funcs_table->funcExists($2->name)){
+		          output::errorDef(yylineno, $2->name);
+		          exit(0);
+		      }
 		      vars_table->Insert($2->name, $1->type,true);
 		      curr_func_args.push_back($1->type);
 
@@ -136,7 +141,7 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		  | Type ID SC	
 		  {
 
-		       if(vars_table->checkVariableDeclared($2->name) != ""){
+		       if(vars_table->checkVariableDeclared($2->name) != "" || funcs_table->funcExists($2->name)){
 		           output::errorDef(yylineno, $2->name);
 		           exit(0);
 		       }
@@ -145,7 +150,7 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		  }
 		  | Type ID ASSIGN Exp SC	
 		  {
-		       if(vars_table->checkVariableDeclared($2->name) != ""){
+		       if(vars_table->checkVariableDeclared($2->name) != "" || funcs_table->funcExists($2->name)){
                	   output::errorDef(yylineno, $2->name);
                	   exit(0);
                }
@@ -158,11 +163,12 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		  }
 		  | ID ASSIGN Exp SC	
 		  {
-		       if(vars_table->checkVariableDeclared($1->name) == ""){
+		       string id_type = vars_table->checkVariableDeclared($1->name);
+		       if(id_type == ""){
                     output::errorUndef(yylineno, $1->name);
                     exit(0);
                }
-               if(vars_table->checkVariableDeclared($1->name) != $3->type){
+               if(id_type != $3->type && !(id_type == "INT" && $3->type == "BYTE")){
                     output::errorMismatch(yylineno);
                     exit(0);
                }
@@ -180,7 +186,8 @@ Statement: LBRACE {vars_table->openScope();} Statements {vars_table->closeScope(
 		  }
 		  | RETURN Exp SC
 		  {
-		      if(funcs_table->lastFuncType() != $2->type){
+
+		      if(funcs_table->lastFuncType() != $2->type && ! (funcs_table->lastFuncType()== "INT" && $2->type == "BYTE")){
               	  output::errorMismatch(yylineno);
               	  exit(0);
               }
@@ -220,6 +227,7 @@ ExpBool: Exp{
         output::errorMismatch(yylineno);
         exit(0);
     }
+    vars_table->openScope();
 }
 
 Call:      ID LPAREN Explist RPAREN
@@ -238,7 +246,7 @@ Explist:    Exp
 		  }
           | Exp COMMA Explist
 		  {
-
+            curr_explist.push_back($1->type);
 		  }
 
 Type :      INT
@@ -269,9 +277,11 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | ID
 		  {
+
 			 string type = vars_table->checkVariableDeclared($1->name);
              if(type == ""){
                 output::errorUndef(yylineno, $1->name);
+                exit(0);
              }
              $$= new Exp(type);
 		  }
@@ -306,7 +316,7 @@ Exp:        LPAREN Exp RPAREN
 		  }
           | NOT Exp
 		  {
-            if($1->type != "BOOL"){
+            if($2->type != "BOOL"){
                 output::errorMismatch(yylineno);
                 exit(0);
             }else{
@@ -342,12 +352,12 @@ Exp:        LPAREN Exp RPAREN
                 $$= new Exp("SET");
             }
             else if(($1->type == "INT") ||($3->type == "INT")){
-            
-                
                 $$= new Exp("INT");
-            }else{
+            }else if($1->type == "BYTE" || $3->type == "BYTE"){
+                $$ = new Exp("BYTE");
+            }
+            else{
                 $$= new Exp("BOOL");
-            
             }
             
 		  }

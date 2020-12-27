@@ -63,7 +63,7 @@ whitespace		([\r\t\n ])
 	                                           yylval =  new Identifier(yytext);
 	                                           return ID;
                                             }
-0|[1-9]{digit}*                             {
+0|[1-9]{digit}*|[1-9]{digit}                {
                                                yylval = new Num(yytext);
                                                return NUM;
                                             }

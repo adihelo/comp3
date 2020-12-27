@@ -138,8 +138,11 @@ public:
             } else{
                 offsets->push_back(0);
             }
-            vector<VarDecleration> new_vec;
-            names->push_back(new_vec);
+            if(names->empty()) {
+                vector<VarDecleration> new_vec;
+                names->push_back(new_vec);
+            }
+
         }
         if(!funcArg && offsets->back() < 0){
             offsets->back()=0;
@@ -172,7 +175,7 @@ public:
         if(offsets->back() < 0){
             offsets->push_back(0);
         } else{
-            offsets->push_back(offsets->back()+1);
+            offsets->push_back(offsets->back());
         }
     }
 
@@ -205,6 +208,10 @@ public:
         Insert("printi", "VOID", printi_vec);
     }
     void Insert(string name, string ret_type, vector<string> args_type)  {
+        if(name == "main" && (ret_type != "VOID" || args_type.size() !=0)){
+            output::errorMainMissing();
+            exit(0);
+        }
         FuncDecleration function = FuncDecleration(name, ret_type, args_type);
         functions->push_back(function);
     }
@@ -218,12 +225,16 @@ public:
     string checkArgsValid(const string& func_name, vector<string> args){
         bool exists = false;
         string ret_type;
+        vector<string> reversed;
+        for (int i = args.size()-1; i >=0 ; --i) {
+            reversed.push_back(args[i]);
+        }
         for (auto & function : *functions) {
             if(function.getName() == func_name){
                 exists = true;
                 ret_type = function.getType();
                 for (int j = 0; j < function.getArgs().size(); ++j) {
-                    if(args[j] != (function.getArgs())[j]){
+                    if(reversed[j] != (function.getArgs())[j] && !((function.getArgs())[j]=="INT" && reversed[j] == "BYTE")){
                         vector<string> args_v = function.getArgs();
                         output::errorPrototypeMismatch(yylineno, func_name, args_v);
                         exit(0);
@@ -250,8 +261,17 @@ public:
     }
 
     bool checkMain(){
-        for (int i = 0; i < functions->size() ; ++i) {
-            if((*functions)[i].getName() == "main" && (*functions)[i].getType()== "void"){
+        for (auto & function : *functions) {
+            if(function.getName() == "main" && function.getType()== "VOID"){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    bool funcExists(string name){
+        for (int i = 0; i <functions->size() ; ++i) {
+            if((*functions)[i].getName() == name){
                 return true;
             }
         }
