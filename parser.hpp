@@ -153,30 +153,71 @@ public:
         } else{
             offsets->back() += 1;
         }
+
         names->back().push_back(decleration);
     }
 
     void closeScope(){
+<<<<<<< HEAD
         output::endScope();
+=======
+       // printf("1\n");
+>>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
         for (auto & i : names->back()) {
+            //std::cout<<"2 i name " <<i.getName()<<std::endl;
             output::printID(i.getName(), i.getOffset(), i.getType());
+            // printf("3 i %d\n",i.getOffset());
         }
+         names->pop_back();
+         //printf("4\n");
+          if(!(offsets->empty())){
+            offsets->pop_back();
+           
+            //return;
+        }
+<<<<<<< HEAD
         offsets->pop_back();
         names->pop_back();
 
+=======
+        
+        // printf("5\n");
+         
+        
+        
+         //printf("6\n");
+        output::endScope();
+        // printf("7\n");
+>>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
     }
 
     void openScope(){
+        //printf("1\n");
+      
+       // std::cout << "1 " << std::endl;
         vector<VarDecleration> new_vec;
+        //printf("2\n"); 
         names->push_back(new_vec);
+       // printf("3\n");
         if(offsets->empty()){
+          //  printf("3\n");
             return;
         }
+       // printf("4\n");
         if(offsets->back() < 0){
+           // printf("5\n");
             offsets->push_back(0);
+            //printf("6\n");
         } else{
+<<<<<<< HEAD
             offsets->push_back(offsets->back());
+=======
+           // printf("7\n");
+            offsets->push_back(offsets->back()+1);
+         //   printf("8\n");
+>>>>>>> 323d857ed72f006e1cff5bee74ab2534438439c1
         }
+       // printf("9\n");
     }
 
     /*
@@ -222,7 +263,7 @@ public:
      * and if the function exists.
      * returned value: return type of the called function
      */
-    string checkArgsValid(const string& func_name, vector<string> args){
+    string checkArgsValid(const string func_name, vector<string> args){
         bool exists = false;
         string ret_type;
         vector<string> reversed;
